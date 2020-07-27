@@ -46,7 +46,7 @@ def filter_rule(rule, config_filter):  # type: (Rule,dict) -> bool  # rule.conte
 
 def manage_versions(rules, current_versions=None, exclude_version_update=False, add_new=True, save_changes=False,
                     verbose=True):
-    # type: (list, dict, bool, bool, bool, bool) -> [list, list]
+    # type: (list[Rule], dict, bool, bool, bool, bool) -> [list, list]
     """Update the contents of the version.lock file and optionally save changes."""
     new_rules = {}
     changed_rules = []
@@ -131,7 +131,7 @@ class Package(object):
             notice_txt = f.read()
 
         with open(os.path.join(save_dir, 'notice.ts'), 'wt') as f:
-            commented_notice = [' * ' + line for line in notice_txt.splitlines()]
+            commented_notice = [f' * {line}'.rstrip() for line in notice_txt.splitlines()]
             lines = ['/* eslint-disable @kbn/eslint/require-license-header */', '', '/* @notice']
             lines = lines + commented_notice + [' */', '']
             f.write('\n'.join(lines))
@@ -150,7 +150,7 @@ class Package(object):
         const_exports = ['export const rawRules = [']
         const_exports.extend(f"  rule{i}," for i, _ in enumerate(sorted_rules, 1))
         const_exports.append("];")
-        const_exports.append(" ")
+        const_exports.append("")
 
         index_ts = [JS_LICENSE, ""]
         index_ts.extend(comments)
@@ -158,6 +158,7 @@ class Package(object):
         index_ts.extend(rule_imports)
         index_ts.append("")
         index_ts.extend(const_exports)
+
         with open(os.path.join(save_dir, 'index.ts'), 'wt') as f:
             f.write('\n'.join(index_ts))
 
@@ -206,9 +207,6 @@ class Package(object):
 
         if verbose:
             click.echo('Package saved to: {}'.format(save_dir))
-
-    def from_github(self):
-        """Retrieve previously released and staged packages."""
 
     def get_package_hash(self, as_api=True, verbose=True):
         """Get hash of package contents."""
